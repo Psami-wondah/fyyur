@@ -20,7 +20,6 @@ def venues():
         .all()
     )
 
-    print(venues)
 
     def get_venue_obj(venue: Venue):
         upcoming_shows = Show.query.filter(
@@ -83,7 +82,7 @@ def show_venue(venue_id):
     # TODO: replace with real venue data from the venues table, using venue_id - Done
 
     venue = Venue.query.get(venue_id)
-    shows = Show.query.filter(Show.venue_id == venue_id)
+    venue_shows = Show.query.join(Venue).filter(Show.venue_id==venue_id)
 
     def get_show_obj(show: Show):
         return {
@@ -93,8 +92,10 @@ def show_venue(venue_id):
             "start_time": str(show.start_time),
         }
 
-    past_shows = shows.filter(Show.start_time < datetime.today())
-    upcoming_shows = shows.filter(Show.start_time >= datetime.today())
+    past_shows = venue_shows.filter(Show.start_time < datetime.today())
+    upcoming_shows = venue_shows.filter(Show.start_time >= datetime.today())
+    past_shows_count = past_shows.count()
+    upcoming_shows_count = upcoming_shows.count()
 
     past_shows = list(map(get_show_obj, past_shows))
     upcoming_shows = list(map(get_show_obj, upcoming_shows))
@@ -114,8 +115,8 @@ def show_venue(venue_id):
         "image_link": venue.image_link,
         "past_shows": past_shows,
         "upcoming_shows": upcoming_shows,
-        "past_shows_count": len(past_shows),
-        "upcoming_shows_count": len(upcoming_shows),
+        "past_shows_count": past_shows_count,
+        "upcoming_shows_count": upcoming_shows_count,
     }
     return render_template("pages/show_venue.html", venue=data)
 

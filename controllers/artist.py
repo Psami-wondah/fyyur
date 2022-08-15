@@ -51,7 +51,7 @@ def show_artist(artist_id):
     # TODO: replace with real artist data from the artist table, using artist_id  - Done
 
     artist = Artist.query.get(artist_id)
-    shows = Show.query.filter(Show.artist_id == artist_id)
+    artist_shows = Show.query.join(Artist).filter(Show.artist_id==artist_id)
 
     def get_show_obj(show: Show):
         return {
@@ -61,8 +61,11 @@ def show_artist(artist_id):
             "start_time": str(show.start_time),
         }
 
-    past_shows = shows.filter(Show.start_time < datetime.today())
-    upcoming_shows = shows.filter(Show.start_time >= datetime.today())
+    past_shows = artist_shows.filter(Show.start_time < datetime.today())
+    upcoming_shows = artist_shows.filter(Show.start_time >= datetime.today())
+
+    past_shows_count = past_shows.count()
+    upcoming_shows_count = upcoming_shows.count()
 
     past_shows = list(map(get_show_obj, past_shows))
     upcoming_shows = list(map(get_show_obj, upcoming_shows))
@@ -81,8 +84,8 @@ def show_artist(artist_id):
         "image_link": artist.image_link,
         "past_shows": past_shows,
         "upcoming_shows": upcoming_shows,
-        "past_shows_count": len(past_shows),
-        "upcoming_shows_count": len(upcoming_shows),
+        "past_shows_count": past_shows_count,
+        "upcoming_shows_count": upcoming_shows_count,
     }
 
     return render_template("pages/show_artist.html", artist=data)
